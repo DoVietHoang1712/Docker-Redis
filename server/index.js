@@ -41,7 +41,7 @@ app.use(function(req, res, next) {
 });
 app.use('/abc', async (req, res, next) => {
     console.log('SessionId: ', req.cookies['connect.sid']);
-    let session = await sessionStore.get(req.cookies['connect.sid']);
+    let session = await sessionStore.get('s');
     console.log(session);
     next();
 })
