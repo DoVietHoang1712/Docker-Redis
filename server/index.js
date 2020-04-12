@@ -9,6 +9,9 @@ const flash = require('connect-flash');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const passport = require('passport');
+const RedisStore = require('connect-redis')(session);
+const RedisClient = require('redis').createClient();
+const sessionStore = new RedisStore({host: '127.0.0.1', port: 6379, client: RedisClient});
 const app = express();
 require('./config/passport');
 
@@ -29,9 +32,19 @@ app.use(session({
     secret: 'secret',
     resave: false,
     saveUninitialized: false,
-    //store: new MongoStore({mongooseConnection: mongoose.connection}),
+    store: sessionStore,
     cookie: {maxAge: 180*60*1000}
 }));
+app.use(function(req, res, next) {
+    res.locals.session = req.session;
+    next();
+});
+app.use('/abc', async (req, res, next) => {
+    console.log('SessionId: ', req.cookies['connect.sid']);
+    let session = await sessionStore.get(req.cookies['connect.sid']);
+    console.log(session);
+    next();
+})
 //Router
 app.use('/', require('./router/index'));
 app.use('/users/', require('./router/user'));
